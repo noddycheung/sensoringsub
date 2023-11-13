@@ -1,0 +1,142 @@
+#include <PS4Controller.h>
+
+#define FRONT_RIGHT_MOTOR 1
+#define BACK_RIGHT_MOTOR 2
+#define FRONT_LEFT_MOTOR 3
+#define BACK_LEFT_MOTOR 4
+
+#define MAX_MOTOR_SPEED 255
+
+char ack = 6;
+int x = 0;
+int y = 0;
+int z = 0;
+
+long data_rate = 20;
+long prev_time = 0;
+long current_time = 0;
+
+//---------------------------------------------------------------------------------------------------//
+
+void setup()
+{
+  Serial.begin(115200);
+  PS4.begin("8c:ce:a7:52:6a");  //MAC address of your PS4
+}
+
+//---------------------------------------------------------------------------------------------------//
+
+void loop()
+{
+  current_time = millis();
+
+  readValues(); // Get data from PS4
+
+  if (current_time - prev_time > data_rate)
+  {
+    sendValues(); //Send data to Atmega328
+    // printValues(); //Prints data on serial port of debugging
+
+    prev_time = current_time;
+
+    // Drive the robot car based on joystick values
+    if (y > 0)
+    {
+      driveForward();
+    }
+    else if (y < 0)
+    {
+      driveBackward();
+    }
+    else if (x > 0)
+    {
+      driveLeft();
+    }
+    else if (x < 0)
+    {
+      driveRight();
+    }
+    else
+    {
+      stopMoving();
+    }
+  }
+}
+
+//---------------------------------------------------------------------------------------------------//
+
+void readValues()
+{
+  x = PS4.LStickX();
+  y = PS4.LStickY();
+  z = PS4.RStickX(); //rotation
+}
+
+//---------------------------------------------------------------------------------------------------//
+
+void sendValues()
+{
+  Serial.print(ack);
+  Serial.println(x);
+  Serial.println(y);
+  Serial.println(z);
+}
+
+//---------------------------------------------------------------------------------------------------//
+
+void printValues()
+{
+  Serial.print(x);
+  Serial.print("\t");
+  Serial.print(y);
+  Serial.print("\t");
+  Serial.println(z);
+}
+
+//---------------------------------------------------------------------------------------------------//
+
+void driveForward()
+{
+  rotateMotor(FRONT_RIGHT_MOTOR, MAX_MOTOR_SPEED);
+  rotateMotor(BACK_RIGHT_MOTOR, MAX_MOTOR_SPEED);
+  rotateMotor(FRONT_LEFT_MOTOR, MAX_MOTOR_SPEED);
+  rotateMotor(BACK_LEFT_MOTOR, MAX_MOTOR_SPEED);
+}
+
+void driveBackward()
+{
+  rotateMotor(FRONT_RIGHT_MOTOR, -MAX_MOTOR_SPEED);
+  rotateMotor(BACK_RIGHT_MOTOR, -MAX_MOTOR_SPEED);
+  rotateMotor(FRONT_LEFT_MOTOR, -MAX_MOTOR_SPEED);
+  rotateMotor(BACK_LEFT_MOTOR, -MAX_MOTOR_SPEED);
+}
+
+void driveLeft()
+{
+  rotateMotor(FRONT_RIGHT_MOTOR, MAX_MOTOR_SPEED);
+  rotateMotor(BACK_RIGHT_MOTOR, -MAX_MOTOR_SPEED);
+  rotateMotor(FRONT_LEFT_MOTOR, -MAX_MOTOR_SPEED);
+  rotateMotor(BACK_LEFT_MOTOR, MAX_MOTOR_SPEED);
+}
+
+void driveRight()
+{
+  rotateMotor(FRONT_RIGHT_MOTOR, -MAX_MOTOR_SPEED);
+  rotateMotor(BACK_RIGHT_MOTOR, MAX_MOTOR_SPEED);
+  rotateMotor(FRONT_LEFT_MOTOR, MAX_MOTOR_SPEED);
+  rotateMotor(BACK_LEFT_MOTOR, -MAX_MOTOR_SPEED);
+}
+
+void stopMoving()
+{
+  rotateMotor(FRONT_RIGHT_MOTOR, 0);
+  rotateMotor(BACK_RIGHT_MOTOR, 0);
+  rotateMotor(FRONT_LEFT_MOTOR, 0);
+  rotateMotor(BACK_LEFT_MOTOR, 0);
+}
+
+void rotateMotor(int motor, int speed)
+{
+  // Code to rotate the specified motor with the given speed
+  // Implement this function based on your motor driver or control mechanism
+}
